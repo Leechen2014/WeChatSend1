@@ -58,6 +58,9 @@ def send_msg(msg='Test Message', toUserName=None): return __client.send_msg(msg,
 def send_file(fileDir, toUserName): return __client.send_file(fileDir, toUserName)
 
 
+def send_soundTest(fileDir, toUserName): return __client.send_soundTest(fileDir, toUserName)
+
+
 def send_image(fileDir, toUserName): return __client.send_image(fileDir, toUserName)
 
 

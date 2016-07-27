@@ -3,28 +3,19 @@ import StringIO
 from flask import Flask
 from flask import make_response
 from flask import render_template
-from flask import url_for
+
 from flask import request
-from flask.ext.cors import CORS
-
-
 from functools import wraps
-
 import json
-
-from requests import Response
-
 import Wechats
-
 import sys
-
 import itchat
+
 from flask import send_file
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
 app = Flask(__name__)
-CORS(app)
 
 
 ###
@@ -54,7 +45,6 @@ def hello_world():
 @app.route('/getuuid')
 @allow_coress_domain
 def getuuid():
-
     uuid = Wechats.getUUID()
     data = {'uuid': str(uuid)}
     uuidJson = json.dumps(data)
@@ -71,10 +61,7 @@ def getQR():
         uuid = request.form['uuid']
     print 'get uuid :' + uuid
     f = Wechats.getQR(uuid)
-
-
     return send_file(f, mimetype='image/jpeg')
-    # return render_template('getQR.html', name=str(uuid + '.jpg'))
 
 ##get Json Contacet
 @app.route('/getContract', methods=['POST', 'GET'])
@@ -85,14 +72,7 @@ def getContract():
         print 'get UUID: ' + uuid
         myContract = Wechats.Login(uuid)
         Wechats.runItChat()
-        # for i in xrange(len(myContract)):
-        #     itchat.send('This is a test message,to see if I could send message in Chinese.这是一条测试信息,试一下我是否可以发送中文短信.',
-        #                        toUserName=myContract[i]['UserName'])
-        # chatRooms = itchat.get_chatrooms(True)
-        # for i in xrange(len(chatRooms)):
-        #     isSucc=itchat.send(msg='This is a test message,to see if I could send message in Chinese.这是一条测试信息,试一下我是否可以发送中文短信.',
-        #                        toUserName=chatRooms[i]['UserName'])
-        print "Logcat::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::"
+        print "::::::Logcat::::::::::::::::::::::::::"
         print myContract
         return str(myContract)
     return 'error'
@@ -102,13 +82,17 @@ def getContract():
 @allow_coress_domain
 def sendMessage():
     if request.method == 'GET':
+        uuid = request.args.get('uuid')
         userName = request.args.get('userName')
         content = request.args.get('content')
     elif request.method == 'POST':
+        uuid=request.form['uuid']
         userName = request.form['userName']
         content = request.form['content']
-    r = itchat.send(content,userName)
+    r = Wechats.sendMsg(uuid,content,userName)
     return r
+
+
 
 if __name__ == '__main__':
     app.run(host='192.168.127.32', port=8000)

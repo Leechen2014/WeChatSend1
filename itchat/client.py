@@ -513,6 +513,12 @@ class client(object):
         url = '%s/webwxsendmsg' % self.loginInfo['url']
         if fromUserName is None:
             fromUserName=self.storageClass.userName.encode('utf8')
+            """
+             <msg>
+        <img length="6503" hdlength="0" />
+        <commenturl></commenturl>
+    </msg>
+            """
         payloads = {
             'BaseRequest': self.loginInfo['BaseRequest'],
             'Msg': {
@@ -574,6 +580,47 @@ class client(object):
             'BaseRequest': self.loginInfo['BaseRequest'],
             'Msg': {
                 'Type': 6,
+                'Content': (
+                "<appmsg appid='wxeb7ec651dd0aefa9' sdkver=''><title>%s</title>" % os.path.basename(fileDir) +
+                "<des></des><action></action><type>6</type><content></content><url></url><lowurl></lowurl>" +
+                "<appattach><totallen>%s</totallen><attachid>%s</attachid>" % (str(os.path.getsize(fileDir)), mediaId) +
+                "<fileext>%s</fileext></appattach><extinfo></extinfo></appmsg>" % os.path.splitext(fileDir)[1].replace(
+                    '.', '')
+                ).encode('utf8'),
+                'FromUserName': self.storageClass.userName.encode('utf8'),
+                'ToUserName': toUserName.encode('utf8'),
+                'LocalID': str(time.time() * 1e7),
+                'ClientMsgId': str(time.time() * 1e7),},}
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.80 Safari/537.36',
+            'Content-Type': 'application/json;charset=UTF-8',}
+        r = self.s.post(url, data=json.dumps(payloads, ensure_ascii=False), headers=headers)
+        return True
+
+
+    def send_soundTest(self, fileDir, toUserName=None):
+        if toUserName is None: toUserName = self.storageClass.userName
+        mediaId = self.__upload_file(fileDir)
+        if mediaId is None: return False
+        url = '%s/webwxsendappmsg?fun=async&f=json' % self.loginInfo['url']
+        #
+        ''''
+        <msg>
+            <voicemsg
+                endflag="1" cancelflag="0" forwardflag="0" voiceformat="4"
+                voicelength="1580" length="2026"
+                bufid="216825389722501519"
+                clientmsgid="49efec63a9774a65a932a4e5fcd4e923filehelper174_1454602489"
+                fromusername="" />
+        </msg>
+
+        '''
+        #
+        #   ##
+        payloads = {
+            'BaseRequest': self.loginInfo['BaseRequest'],
+            'Msg': {
+                'Type': 34,
                 'Content': (
                 "<appmsg appid='wxeb7ec651dd0aefa9' sdkver=''><title>%s</title>" % os.path.basename(fileDir) +
                 "<des></des><action></action><type>6</type><content></content><url></url><lowurl></lowurl>" +

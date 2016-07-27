@@ -1,63 +1,109 @@
-#-*-coding:UTF-8-*-
+# -*-coding:UTF-8-*-
 import itchat
-import time
-import sys
-import thread
-import json
 
-def LogCat(msg,tag=None):
+import thread
+
+
+def LogCat(msg, tag=None):
     if tag is None:
-        tag='[INFO]:'
-    print('\(tag) %s',msg)
-#web interface 1.0
+        tag = '[INFO]:'
+    print('\(tag) %s', msg)
+
+dictClient = {}
+
+# web interface 1.0
 def getUUID():
-    uuid = itchat.get_QRuuid()
+    it = itchat.client()
+    uuid = it.get_QRuuid()
+    dictClient[uuid] = it
     for count in xrange(10):
         if uuid is None:
             LogCat("UUID is none,try again....", tag="INFO:")
-            uuid = itchat.get_QRuuid()
+            uuid = it.get_QRuuid()
         else:
             break
     return uuid
 
-#web interface 1.1
+
+# web interface 1.1
 def getQR(uuid):
     LogCat("get UUID")
-    f = itchat.get_QRTest2(uuid)
+    it = dictClient[uuid]
+    f = it.get_QRTest2(uuid)
     LogCat("scan QR...")
+
     return f
+
 
 # web interface 1.3
 def Login(uuid):
+    print uuid
+    it = dictClient[uuid]
     waitForConfirm = False
     while True:
-        status = itchat.check_login(uuid)
-        if status=='200':
+        status = it.check_login(uuid)
+        if status == '200':
             break
-        elif status=='201':
+        elif status == '201':
             if waitForConfirm:
                 LogCat("Plase press confrim ....")
-                waitForConfirm=True
+                waitForConfirm = True
         elif status == '408':
             LogCat("Reloading QR code....")
-            uuid = getUUID()
+            # uuid = getUUID()
             print uuid
-            getQR(uuid)
+            # getQR(uuid)
             waitForConfirm = False
-    itchat.web_init()
-    itchat.show_mobile_login()
-    #i
-    con = itchat.get_contractTest()
+    it.web_init()
+    it.show_mobile_login()
+    # i
+    con = it.get_contractTest()
 
-    itchat.start_receiving()#key
+    it.start_receiving()  # key
     return con
+
+
 ###1.4
 def runItChat():
     thread.start_new_thread(itchat.run, ())
+
+
 ##2.0
-def sendMsg(message,fromUserName,userName):
-    isSucc = itchat.send_msgTest(msg=message,fromUserName=fromUserName,toUserName=userName)
+def sendMsg(id, message, userName):
+    it = dictClient[id]
+    isSucc = it.send_msgTest(msg=message, toUserName=userName)
     return isSucc
+
+def sendImg(id,img,userName):
+    it = dictClient[id]
+    isSucc = it.send_image(img,userName)
+    return  isSucc
+
+def sendFile(id,file,userName):
+    it = dictClient[id]
+    isSucc = it.send_soundTest(file, userName)
+    return isSucc
+
+# #
+uuid = getUUID()
+path=getQR(uuid)
+con = Login(uuid)
+contract=dictClient[uuid].get_contract()
+
+# for i in xrange(len(contract)):
+#     isSucc = sendMsg(id=uuid,message="This is a test message,to see if I could send message in Chinese.这是一条测试信息,试一下我是否可以发送中文短信.", userName = contract[i]['UserName'])
+#     print isSucc
+#
+# for i in xrange(len(contract)):
+#     isSucc = sendImg(id=uuid,img="/home/master/PycharmProjects/WeChatSend/img/test.gif", userName = contract[i]['UserName'])
+#     print isSucc
+
+for i in xrange(len(contract)):
+    isSucc = sendFile(id=uuid,file="/home/master/PycharmProjects/WeChatSend/vido/19001.wav", userName = contract[i]['UserName'])
+    print isSucc
+#
+#
+# print dictClient
 #
 # #
 # #
